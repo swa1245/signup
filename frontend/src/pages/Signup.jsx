@@ -12,17 +12,39 @@ const Signup = () => {
   const handleChange = (e) =>
     setSignupInfo({ ...signupInfo, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { name, email, password } = signupInfo;
-
+  
     if (!name || !email || !password) {
-      toast.error("All fields are required");
-    } else {
-      toast.success("Signup successful!");
-      // handle backend call here
+      return toast.error("All fields are required");
+    }
+  
+    try {
+      const res = await fetch("http://localhost:3000/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(signupInfo),
+      });
+  
+      const data = await res.json();
+      console.log(data)
+  
+      if (!res.ok) {
+        // If backend sends error message
+        return toast.error(data.message || "Signup failed");
+      }
+  
+      toast.success(data.message || "Signup successful!");
+      // Optionally redirect or reset form
+      setSignupInfo({ name: "", email: "", password: "" });
+    } catch (error) {
+      toast.error("Something went wrong: " + error.message);
     }
   };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -56,6 +78,7 @@ const Signup = () => {
           />
           <button
             type="submit"
+
             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
           >
             Signup
